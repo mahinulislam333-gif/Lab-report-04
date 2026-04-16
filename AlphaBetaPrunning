@@ -1,0 +1,81 @@
+import math
+import random
+
+def minimax(curDepth, nodeIndex, maxTurn, scores, targetDepth, visited):
+    visited[0] += 1
+
+    if curDepth == targetDepth:
+        return scores[nodeIndex]
+
+    if maxTurn:
+        return max(
+            minimax(curDepth + 1, nodeIndex * 2, False, scores, targetDepth, visited),
+            minimax(curDepth + 1, nodeIndex * 2 + 1, False, scores, targetDepth, visited)
+        )
+    else:
+        return min(
+            minimax(curDepth + 1, nodeIndex * 2, True, scores, targetDepth, visited),
+            minimax(curDepth + 1, nodeIndex * 2 + 1, True, scores, targetDepth, visited)
+        )
+
+def alphabeta(curDepth, nodeIndex, maxTurn, scores, targetDepth, alpha, beta, visited, pruned):
+    visited[0] += 1
+
+    if curDepth == targetDepth:
+        return scores[nodeIndex]
+
+    if maxTurn:
+        value = -math.inf
+
+        value = max(value, alphabeta(curDepth + 1, nodeIndex * 2, False, scores, targetDepth, alpha, beta, visited, pruned))
+        alpha = max(alpha, value)
+
+        if beta <= alpha:
+            pruned[0] += 1
+            return value
+
+        value = max(value, alphabeta(curDepth + 1, nodeIndex * 2 + 1, False, scores, targetDepth, alpha, beta, visited, pruned))
+        alpha = max(alpha, value)
+
+        return value
+
+    else:
+        value = math.inf
+
+        value = min(value, alphabeta(curDepth + 1, nodeIndex * 2, True, scores, targetDepth, alpha, beta, visited, pruned))
+        beta = min(beta, value)
+
+        if beta <= alpha:
+            pruned[0] += 1
+            return value
+
+        value = min(value, alphabeta(curDepth + 1, nodeIndex * 2 + 1, True, scores, targetDepth, alpha, beta, visited, pruned))
+        beta = min(beta, value)
+
+        return value
+
+scores = []
+n = 8
+
+for i in range(n):
+    scores.append(random.randint(1, 25))
+
+treeDepth = int(math.log(len(scores), 2))
+
+minimaxVisited = [0]
+minimaxValue = minimax(0, 0, True, scores, treeDepth, minimaxVisited)
+
+alphaBetaVisited = [0]
+prunedNodes = [0]
+alphaBetaValue = alphabeta(0, 0, True, scores, treeDepth, -math.inf, math.inf, alphaBetaVisited, prunedNodes)
+
+improvement = ((minimaxVisited[0] - alphaBetaVisited[0]) / minimaxVisited[0]) * 100
+
+print("Generated Leaf Nodes:", scores)
+print("Minimax:")
+print("    Nodes Evaluated:", minimaxVisited[0])
+print("    Optimal Value:", minimaxValue)
+print("Alpha-Beta Pruning:")
+print("    Nodes Evaluated:", alphaBetaVisited[0])
+print("    Nodes Pruned:", prunedNodes[0])
+print("Efficiency Improvement:", round(improvement, 2), "%")
